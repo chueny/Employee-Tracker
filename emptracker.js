@@ -1,6 +1,6 @@
 const mysql = require("mysql");
 const inquirer = require("inquirer");
-const cTable = require("console.table");
+// const cTable = require("console.table");
 
 const { STATUS_CODES } = require("http");
 const { start } = require("repl");
@@ -22,7 +22,7 @@ connection.connect(function(err) {
 function selectEmployeeAction() {
   inquirer
     .prompt({
-      name: "action?",
+      name: "action",
       type: "list",
       message: "What would you like to do?",
       choices:[
@@ -38,13 +38,13 @@ function selectEmployeeAction() {
         viewAll();
         break;
 
-      case "Add departments, roles, employees":
-        addAll();
-        break;
+      // case "Add departments, roles, employees":
+      //   addAll();
+      //   break;
 
-      case "Update Employee Role":
-        updateEmployeeRole();
-        break;
+      // case "Update Employee Role":
+      //   updateEmployeeRole();
+      //   break;
 
       case "Exit":
         connection.end();
@@ -54,9 +54,10 @@ function selectEmployeeAction() {
 };
 
 function viewAll(){
-  connection.query("SELECT * FROM department", function(err, res) {
+  connection.query(
+  "SELECT first_name, last_name, title, department_name, salary FROM department JOIN role ON department.id =role.department_id JOIN employee ON role.department_id = employee.role_id", function(err, res) {
     if (err) throw err;
-    console.log(res);
+    console.table(res);
   });
 };
 
