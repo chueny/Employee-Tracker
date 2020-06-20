@@ -1,19 +1,14 @@
-var mysql = require("mysql");
-var inquirer = require("inquirer");
+const mysql = require("mysql");
+const inquirer = require("inquirer");
+const cTable = require("console.table");
 
 const { STATUS_CODES } = require("http");
 const { start } = require("repl");
 
 var connection = mysql.createConnection({
   host: "localhost",
-
-  // Your port; if not 3306
   port: 3306,
-
-  // Your username
   user: "root",
-
-  // Your password
   password: "chueny20",
   database: "employeeTracker_db"
 });
@@ -21,42 +16,60 @@ var connection = mysql.createConnection({
 connection.connect(function(err) {
   if (err) throw err;
   console.log("connected as id " + connection.threadId + "\n");
- // createSong();
-  selectArtist();
+  selectEmployeeAction();
 });
 
-// A query which returns all data for songs sung by a specific artist
-
-function selectArtist() {
+function selectEmployeeAction() {
   inquirer
     .prompt({
       name: "action?",
       type: "list",
       message: "What would you like to do?",
       choices:[
-        "Add departments",
-        "Add roles",
-        "Add employees",
-        "Update employee roles",
-        "View departments",
-        "View roles",
-        "View employees"
+        "View departments, roles, employees",
+        "Add departments, roles, employees",
+        "Update Employee Role",   
+        "Exit"
       ],
   }).then(function(answer) {
-      var query = "SELECT position, song, year FROM top5000 WHERE ?";
-      connection.query(query, {artist: answer.artist}, function(err, res) {
-        if (err) throw err;
 
-        for (var  i=0; i<res.length; i++){
-          console.log("Position:" + res[i].position + " || Song: "+ res[1].title + "|| Year: "+ res[1].year);
-        } 
-      });
+      switch (answer.action){
+      case "View departments, roles, employees":
+        viewAll();
+        break;
+
+      case "Add departments, roles, employees":
+        addAll();
+        break;
+
+      case "Update Employee Role":
+        updateEmployeeRole();
+        break;
+
+      case "Exit":
+        connection.end();
+        break;
+      }
   });
 };
 
-//function to add departments, roles, employees
-//function to view departments, roles, employees
-//function to update employee roles
+function viewAll(){
+  connection.query("SELECT * FROM department", function(err, res) {
+    if (err) throw err;
+    console.log(res);
+  });
+};
 
+function addAll(){
+  connection.query("SELECT * FROM role", function(err, res) {
+    if (err) throw err;
+    console.log(res);
+  });
+};
 
-
+function updateEmployeeRole(){
+  connection.query("SELECT * FROM employee", function(err, res) {
+    if (err) throw err;
+    console.log(res);
+  });
+};
