@@ -119,10 +119,6 @@ function addAll(){
     }
 ]).then(function(answer) {
 
-  //checks that role does not already exit 
-  console.log("What is answer.department:", answer.department);
-  console.log("What is answer.title:", answer.title);
-  console.log("What is answer.salary:", answer.salary);
   connection.query(
     "INSERT INTO role SET ?",
     {
@@ -137,7 +133,7 @@ function addAll(){
 
   connection.query("SELECT id FROM role WHERE ?", {title: answer.title, }, function(err, results) { 
     let newRole= results[0].id;
-    
+
       connection.query("INSERT INTO employee SET ?", 
       {
         first_name: answer.firstName,
@@ -154,7 +150,6 @@ function addAll(){
 });
 }
 
-//========THE FUNCTIONS BELOW DO NOT WORK YET =========
 function getAllRoles(callback){
   connection.query("SELECT * FROM role", function(err,res){
     callback(err, res);
@@ -162,7 +157,6 @@ function getAllRoles(callback){
 };
 
 function updateEmployeeRole(){
-  //who which employee do you want to update? prompt user for who they want to update
   getAllRoles(function (err, roles){
     if (err) throw err;
 
@@ -198,36 +192,19 @@ function updateEmployeeRole(){
           },
             message: "What is the new role?"
         }]).then((answers) =>{
-            let selectedEmployeeId = answers.employee;
-           
-            console.log("What is the answer:", answers);
-            console.log("What is the role ID:", answers.role);
-            console.log("What is the Emplyee ID:", answers.employee);
-  
-                const rawquery = connection.query(//"UPDATE role SET title =? WHERE role_Id =?"
-                "UPDATE employee SET role_id = ? WHERE id = ?", 
-                [
-                   answers.role,
-                  answers.employee
-                ], 
-                function (err){
-                  console.log("Employee role is updated!");
-                  viewAll();
-                });
-                console.log("rawquery", rawquery);      
+          
+            const rawquery = connection.query(
+              "UPDATE employee SET role_id = ? WHERE id = ?", 
+              [
+                answers.role,
+                answers.employee
+              ], 
+              function (err){
+                console.log("Employee role is updated!");
+                viewAll();
+              });
+            console.log("rawquery", rawquery);      
         });
     });
   });
 };
-
-
-// I have a function that takes as a parameter another function 
-function getData(callback){
-  // get stuff from the db and once you have it call the passed in function in this case named "callback"
-
-  callback("hello");
-}
-
-getData(function fn(mystring){
-  console.log(mystring)
-})
