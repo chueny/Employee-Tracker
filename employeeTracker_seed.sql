@@ -4,25 +4,31 @@ INSERT INTO department (department_name)
 	VALUES ("Customer Service"), ("Engineer"), ("Finance"), ("Human Resource"), ("IT"), ("Legal"), ("Marketing"), ("Operations"), ("Sales");
 
 INSERT INTO role (title, salary, department_id)
-VALUES ("Engineer Staff A", 95000, 2); 
+VALUES ("Engineer", 95000, 2); 
 
 INSERT INTO role (title, salary, department_id)
-VALUES ("Sales Manager", 100000, 9);
+VALUES ("Sales Specialist", 70000, 9);
 
 INSERT INTO role (title, salary, department_id)
-VALUES ("Sales Associate", 70000, 9);
-
-INSERT INTO role (title, salary, department_id)
-VALUES ("HR Recruiter", 70000, 4);
+VALUES ("HR Specialist", 70000, 4);
 
 INSERT INTO role (title, salary, department_id)
 VALUES ("Office Manager", 50000, 8);
 
 INSERT INTO role (title, salary, department_id)
-VALUES ("Customer Service Support", 52000, 1);
+VALUES ("Customer Service Specialist", 52000, 1);
 
 INSERT INTO role (title, salary, department_id)
-VALUES ("Marketing Associate", 54000, 7);
+VALUES ("Marketing Specialist", 54000, 7);
+
+INSERT INTO role (title, salary, department_id)
+VALUES ("Finance Specialist", 54000, 3);
+
+INSERT INTO role (title, salary, department_id)
+VALUES ("IT Specialist", 64000, 5);
+
+INSERT INTO role (title, salary, department_id)
+VALUES ("Lawyer", 164000, 6);
 
 
 INSERT INTO employee (first_name, last_name, role_id)
@@ -44,7 +50,13 @@ INSERT INTO employee (first_name, last_name, role_id)
 VALUES ("Frank",  "Moon", 6);
 
 INSERT INTO employee (first_name, last_name, role_id)
-VALUES ("Geraldine",  "Nune", 7);
+VALUES ("Ian",  "McKennedy", 7);
+
+INSERT INTO employee (first_name, last_name, role_id)
+VALUES ("Josephine",  "Miller", 8);
+
+INSERT INTO employee (first_name, last_name, role_id)
+VALUES ("Kyle",  "Thorn", 9);
 
 SELECT * FROM department;
 SELECT * FROM role;
@@ -53,5 +65,6 @@ SELECT * FROM employee;
 SELECT first_name, last_name, title, department_name, salary
 FROM department
 JOIN role ON department.id =role.department_id
-JOIN employee ON role.id = employee.role_id
+JOIN employee ON role.id = employee.role_id;
 
+SELECT id FROM role;

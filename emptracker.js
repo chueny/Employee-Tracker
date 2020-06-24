@@ -18,7 +18,7 @@ connection.connect(function(err) {
   selectEmployeeAction();
 });
 
-function selectEmployeeAction() {
+function selectEmployeeAction(){
   inquirer.prompt({
       name: "action",
       type: "list",
@@ -78,8 +78,6 @@ function validateString(str){
   }
 };
 
-//========THE FUNCTIONS BELOW DO NOT WORK YET =========
-
 function addAll(){
   inquirer.prompt([
     {
@@ -120,32 +118,28 @@ function addAll(){
       }
     }
 ]).then(function(answer) {
-  //console.log("We are in the addAll function!");
 
   //checks that role does not already exit 
-
+  console.log("What is answer.department:", answer.department);
+  console.log("What is answer.title:", answer.title);
+  console.log("What is answer.salary:", answer.salary);
   connection.query(
     "INSERT INTO role SET ?",
     {
       title: answer.title,
-      salary:answer.salary,
+      salary: answer.salary,
       department_id: answer.department
     }, 
     function(err, results){
       if (err) throw err;
-      //console.log("You're role was created successfully!");
-      //console.log("Printing results", results);
-
-      //we reprint the roles?
     }
   )
 
-  connection.query("SELECT id FROM role WHERE ?", {title: answer.title}, function(err, results) {
-    //console.log("In newRole:", results);  
+  connection.query("SELECT id FROM role WHERE ?", {title: answer.title, }, function(err, results) { 
     let newRole= results[0].id;
     
       connection.query("INSERT INTO employee SET ?", 
-        {
+      {
         first_name: answer.firstName,
         last_name: answer.lastName,
         role_id: newRole
@@ -153,66 +147,87 @@ function addAll(){
       function(err){
         if (err) throw err;
         console.log("You're employee was created successfully!"); 
+        viewAll();
       }
       );
   });
 });
 }
 
+//========THE FUNCTIONS BELOW DO NOT WORK YET =========
+function getAllRoles(callback){
+  connection.query("SELECT * FROM role", function(err,res){
+    callback(err, res);
+  });
+};
+
 function updateEmployeeRole(){
   //who which employee do you want to update? prompt user for who they want to update
-  connection.query
-  (`SELECT first_name, last_name, title, department_id 
-  FROM department 
-  JOIN role ON department.id =role.department_id 
-  JOIN employee ON role.id = employee.role_id`,
-  // ("SELECT * FROM employee", 
-  function (err, results){
+  getAllRoles(function (err, roles){
     if (err) throw err;
-    console.log("I am in the updateEmployeRole!");
 
-    inquirer.prompt([
-      {
-        name: "role",
-        type: "rawlist",
-        choices: function() {
-          var employeeArray = [];
-          for (var i = 0; i < results.length; i++) {
-            employeeArray.push("Name: "+ results[i].first_name + " "+ results[i].last_name  + " "+ results[i].title+ " DeptID: "+ results[i].department_id);
-          }
-          return employeeArray;
-        },
-        message: "Which employee do you want to update?"
-      },
-      {
-        name: "newID",
-        type: "list",
-        message: "What is the new role?",
-        choices: function() {
-          var idArray = [];
-          for (var i = 0; i < results.length; i++) {
-            idArray.push(results[i].id);
-          }
-          return idArray;
-        }
-        //1) select from a list // with
-        //2) Creaate a new role
-      }
-    ]).then(function(answer){
-          connection.query("UPDATE employee SET role_Id = ? WHERE  id = ? ", 
-          [
-            {
-              role_id: answer.newID,
-            },
-            {
-              id: answer.role  //does this mean we need to grab the role id 
+    connection.query
+    (`SELECT first_name, last_name, title, department_id, employee.id  
+    FROM department 
+    JOIN role ON department.id =role.department_id 
+    JOIN employee ON role.id = employee.role_id`,
+    function (err, employees){
+      if (err) throw err;
+      inquirer.prompt([
+        {
+          name: "employee",
+          type: "list",
+          choices: function selectEmployee(){
+            var employeeArray = [];
+            for (var i = 0; i < employees.length; i++) {
+              employeeArray.push(  {name:"Name: "+ employees[i].first_name + " "+ employees[i].last_name  + ", Title: "+ employees[i].title+ ", DeptID: "+ employees[i].department_id, value: employees[i].id});
             }
-          ],
-          function (err, results){
-          console.log("Employee role is updated!");
-            
-          });
-          viewAll();
+            return employeeArray;
+          },
+          message: "Which employee do you want to update?"
+        },
+        {
+          name: "role",
+          type: "list",
+          choices: function updateRole(){
+            let roleArray = [];
+            for (var i = 0; i < roles.length; i++) {
+              roleArray.push({name: roles[i].title, value:roles[i].id});
+            }
+            return roleArray;
+          },
+            message: "What is the new role?"
+        }]).then((answers) =>{
+            let selectedEmployeeId = answers.employee;
+           
+            console.log("What is the answer:", answers);
+            console.log("What is the role ID:", answers.role);
+            console.log("What is the Emplyee ID:", answers.employee);
+  
+                const rawquery = connection.query(//"UPDATE role SET title =? WHERE role_Id =?"
+                "UPDATE employee SET role_id = ? WHERE id = ?", 
+                [
+                   answers.role,
+                  answers.employee
+                ], 
+                function (err){
+                  console.log("Employee role is updated!");
+                  viewAll();
+                });
+                console.log("rawquery", rawquery);      
+        });
     });
   });
+};
+
+
+// I have a function that takes as a parameter another function 
+function getData(callback){
+  // get stuff from the db and once you have it call the passed in function in this case named "callback"
+
+  callback("hello");
 }
+
+getData(function fn(mystring){
+  console.log(mystring)
+})
