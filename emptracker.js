@@ -3,6 +3,7 @@ const inquirer = require("inquirer");
 
 const { STATUS_CODES } = require("http");
 const { start } = require("repl");
+const { connect } = require("http2");
 
 var connection = mysql.createConnection({
   host: "localhost",
@@ -28,7 +29,8 @@ function selectEmployeeAction(){
         "Add a new employee",
         "Add a new department",
         "Add a new role",
-        "Update an employee role",   
+        "Update an employee role", 
+        "Delete a department",  
         "Exit"
       ],
   }).then(function(answer) {
@@ -36,23 +38,21 @@ function selectEmployeeAction(){
       case "View departments, roles, employees":
         viewAll();
         break;
-
       case "Add a new employee":
         addEmployee(); 
         break;
-
       case "Add a new role":
           addRole(); 
           break;    
-      
       case "Add a new department":
           addDepartment(); 
           break;
-        
-      case "Update Employee Role":
+      case "Update an employee role":
         updateEmployeeRole();
         break;
-
+      case "Delete a department":
+        deleteDepartment();
+        break;
       case "Exit":
         connection.end();
         break;
@@ -89,6 +89,8 @@ function validateString(str){
 };
 
 function addEmployee(){
+  connection.query("SELECT * FROM role", function(err, res) { 
+    
   inquirer.prompt([
     {
       name: "firstName",
@@ -103,75 +105,27 @@ function addEmployee(){
       validateString
     },
     {
-      name: "title",
-      type: "input",
-      message: "What is the employee's title?",
-      validate: validateString
+      name: "role",
+      type: "list",
+      message: "What is the employee's role?",
+      choices: res.map((role) => {
+        return { name: role.title, value: role.id};
+      }),
     },
+  ]).then(function(answer){
+    connection.query("INSERT INTO employee SET ?", 
     {
-      name: "salary", 
-      type: "input",
-      message: "What is the employee's salary?",
-      validate: validateSalary
-    },
-    {
-      name: "department",
-      type: "input",
-      message: "What is the employee's department? (1=Customer Service, 2=Engineering, 3=Finance, 4=Human Resources, 5=IT, 6=Legal, 7=Marketing, 8=Operations, 9=Sales)",
-      validate: function(value) {
-        if (isNaN(value) === false && value > 0 && value < 10) {
-          return true;
-       }
-        else{
-          return "You must enter a valid number.";
-        }
-      }
-    }
-]).then(function(answer) {
-
-  connection.query(
-    "INSERT INTO role SET ?",
-    {
-      title: answer.title,
-      salary: answer.salary,
-      department_id: answer.department
+      first_name: answer.firstName,
+      last_name: answer.lastName,
+      role_id: answer.role
     }, 
-    function(err, results){
+    function(err){
       if (err) throw err;
+      console.log("You're employee was created successfully!"); 
+      viewAll();
     }
-  )
-
-  connection.query("SELECT id FROM role WHERE ?", {title: answer.title, }, function(err, results) { 
-    let newRole= results[0].id;
-
-      connection.query("INSERT INTO employee SET ?", 
-      {
-        first_name: answer.firstName,
-        last_name: answer.lastName,
-        role_id: newRole
-      }, 
-      function(err){
-        if (err) throw err;
-        console.log("You're employee was created successfully!"); 
-        viewAll();
-      }
-      );
+    );
   });
-});
-}
-
-//addRole();    
-
-function getAllRoles(callback){
-  connection.query("SELECT * FROM role", function(err,res){
-    callback(err, res);
-  });
-};
-
-function viewAllDepartment(){
-  connection.query("SELECT * FROM department", function(err,res){
-    if (err) throw err;
-    console.table(res);
   });
 }
 
@@ -183,23 +137,86 @@ function addDepartment(){
       message: "What is the name of the new department?",
       validateString
     }
-]).then(function(answer) {
+  ]).then(function(answer) {
+      
+      connection.query(
+      "INSERT INTO department SET ?",
+      {
+          department_name: answer.department
+      }, 
+      function(err, results){
+          if (err) throw err;
+          console.log("You have successfully added a new department!");
+          viewAllDepartment();
+          selectEmployeeAction();
+      }
+      )
+  });
+};
 
-  connection.query(
-    "INSERT INTO department SET ?",
+function viewAllDepartment(){
+  connection.query("SELECT * FROM department", function(err,res){
+    if (err) throw err;
+    console.table(res);
+  });
+};  
+
+function getAllRoles(callback){
+  connection.query("SELECT * FROM role", function(err,res){
+    callback(err, res);
+  });
+};
+
+function viewAllRoles(){
+  connection.query("SELECT * FROM role", function(err,res){
+    if (err) throw err;
+    console.table(res);
+  });
+}
+
+function addRole(){
+  
+  connection.query("SELECT * FROM department", function(err,res){
+
+    inquirer.prompt([
     {
-      department_name: answer.department
+      name: "title",
+      type: "input",
+      message: "What is the role that you want to add?",
+      validate: validateString
+    },
+    {
+      name: "salary", 
+      type: "input", 
+      message: "What is the salary for this role?",
+      validate: validateSalary
+    },
+    {
+      name: "department",
+      type: "list",
+      message: "Which department does this role belong?",
+      choices: res.map((department) => {
+        return {name: department.department_name, value:department.id };
+      }),
+    }
+  ]).then(function(answer) {
+    connection.query(
+    "INSERT INTO role SET ?",
+    {
+      title: answer.title,
+      salary: answer.salary,
+      department_id: answer.department
     }, 
     function(err, results){
       if (err) throw err;
-      console.log("You have successfully added a new department!");
-      viewAllDepartment();
+      console.log("You have successfully added a new role!"); 
+      viewAllRoles();
+      selectEmployeeAction();
     }
-  )
+    )
+  });
 });
-}
-
-
+};
 
 function updateEmployeeRole(){
   getAllRoles(function (err, roles){
@@ -237,7 +254,6 @@ function updateEmployeeRole(){
           },
             message: "What is the new role?"
         }]).then((answers) =>{
-          
             const rawquery = connection.query(
               "UPDATE employee SET role_id = ? WHERE id = ?", 
               [
@@ -253,3 +269,32 @@ function updateEmployeeRole(){
     });
   });
 };
+
+function deleteDepartment(){
+  connection.query("SELECT * FROM department", function(err,res){
+    if(err) throw err;
+
+    inquirer.prompt([
+      {
+        name: "department",
+        type: "list",
+        message: "What department would you like to delete?",
+        choices: res.map((department) => {
+          return { name: department.department_name, value: department.id};
+        }),
+      }
+    ]).then(function(answer){
+        
+        connection.query("DELETE FROM department WHERE ?",
+        {
+            id: answer.department
+        }, 
+        function(err, res){
+            if (err) throw err;
+            console.log("You have successfully deleted a department!");
+            viewAllDepartment();
+            selectEmployeeAction();
+        });
+    });
+  });
+}
