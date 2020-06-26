@@ -25,8 +25,10 @@ function selectEmployeeAction(){
       message: "What would you like to do?",
       choices:[
         "View departments, roles, employees",
-        "Add departments, roles, employees",
-        "Update Employee Role",   
+        "Add a new employee",
+        "Add a new department",
+        "Add a new role",
+        "Update an employee role",   
         "Exit"
       ],
   }).then(function(answer) {
@@ -35,10 +37,18 @@ function selectEmployeeAction(){
         viewAll();
         break;
 
-      case "Add departments, roles, employees":
-        addAll(); 
+      case "Add a new employee":
+        addEmployee(); 
         break;
 
+      case "Add a new role":
+          addRole(); 
+          break;    
+      
+      case "Add a new department":
+          addDepartment(); 
+          break;
+        
       case "Update Employee Role":
         updateEmployeeRole();
         break;
@@ -78,7 +88,7 @@ function validateString(str){
   }
 };
 
-function addAll(){
+function addEmployee(){
   inquirer.prompt([
     {
       name: "firstName",
@@ -150,11 +160,46 @@ function addAll(){
 });
 }
 
+//addRole();    
+
 function getAllRoles(callback){
   connection.query("SELECT * FROM role", function(err,res){
     callback(err, res);
   });
 };
+
+function viewAllDepartment(){
+  connection.query("SELECT * FROM department", function(err,res){
+    if (err) throw err;
+    console.table(res);
+  });
+}
+
+function addDepartment(){
+  inquirer.prompt([
+    {
+      name: "department",
+      type: "input",
+      message: "What is the name of the new department?",
+      validateString
+    }
+]).then(function(answer) {
+
+  connection.query(
+    "INSERT INTO department SET ?",
+    {
+      department_name: answer.department
+    }, 
+    function(err, results){
+      if (err) throw err;
+      console.log("You have successfully added a new department!");
+      viewAllDepartment();
+    }
+  )
+});
+}
+
+
 
 function updateEmployeeRole(){
   getAllRoles(function (err, roles){
