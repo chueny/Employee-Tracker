@@ -9,7 +9,7 @@ Run npm install
 # Link to Application 
 Link to repository on GitHub: https://github.com/chueny/Employee-Tracker
 
-Link to video clip: https://drive.google.com/file/d/1glMhDDMXUnJnbMG07FpGiCCbPTQyUz89/view?usp=sharing
+Link to video clip: https://drive.google.com/file/d/182qrneDwRiAoddMbrdLRXFCXp4bfxZX6/view?usp=sharing
 
 # Screen Shot
 ![Screen Shot 2020-06-23 at 9 59 26 PM](https://user-images.githubusercontent.com/17972802/85493696-fc430e00-b59c-11ea-8f67-58f3e2cbdcfa.png)
